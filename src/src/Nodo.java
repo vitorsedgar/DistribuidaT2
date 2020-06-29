@@ -111,8 +111,8 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Confirma menssagem dos nodos
-    public boolean mensagemCoordenador() {
-        System.out.println("recebendoMSG");
+    public boolean mensagemCoordenador(String id) {
+        System.out.println("Mensagem recebida de "+ id);
         return true;
     }
 
@@ -122,8 +122,8 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         while (true) {
             while (!inEleicao) {
                 try {
-                    coordenador.mensagemCoordenador();
-                    System.out.println("emvaindoMSG");
+                    coordenador.mensagemCoordenador(this.ID);
+                    System.out.println("Enviando mensagem para "+ coordenador.getID());
                     Thread.sleep(3000);
                 } catch (RemoteException e) {
                     new Thread(this::iniciaEleicao).start();

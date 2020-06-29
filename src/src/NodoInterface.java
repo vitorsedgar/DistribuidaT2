@@ -7,7 +7,9 @@ public interface NodoInterface extends Remote {
 
     public boolean mensagemEleicao() throws RemoteException;
 
-    public boolean mensagemCoordenador() throws RemoteException;
+    public boolean mensagemCoordenador(String id) throws RemoteException;
 
     public void mensagemConfirmaNodo() throws RemoteException;
+
+    public String getID() throws RemoteException;
 }
