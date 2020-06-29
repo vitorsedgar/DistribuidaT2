@@ -76,7 +76,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         while (nodosProntos.intValue() < nodos.size()) {
 
         }
-        System.out.println("Nodos confirmados: ");
+        System.out.println("Nodos confirmados, iniciando algoritmo...");
         this.coordenador();
     }
 
