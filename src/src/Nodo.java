@@ -17,6 +17,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     private static volatile List<Nodo> nodos;
     private static volatile AtomicInteger nodosProntos;
     private static volatile Boolean inEleicao;
+    private static volatile Boolean eleito;
 
     private static volatile NodoInterface coordenador;
 
@@ -31,6 +32,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         nodos = listaNodos;
         Nodo maiorID = getNodoMaiorID();
         inEleicao = Boolean.FALSE;
+        eleito = Boolean.FALSE;
         nodosProntos = new AtomicInteger(0);
         Nodo nodo = null;
         try {
@@ -103,6 +105,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Conta 10 segundos e encerra programa
     public void coordenador() {
+        inEleicao = Boolean.FALSE;
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
@@ -112,8 +115,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Confirma menssagem dos nodos
-    public boolean mensagemCoordenador(String id) {
-        System.out.println("Mensagem recebida de "+ id);
+    public boolean mensagemCoordenador() {
         return true;
     }
 
@@ -123,11 +125,13 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         while (true) {
             while (!inEleicao) {
                 try {
-                    coordenador.mensagemCoordenador(this.ID);
-                    System.out.println("Enviando mensagem para "+ coordenador.getID());
+                    System.out.println("t " + coordenador.getID());
+                    coordenador.mensagemCoordenador();
                     Thread.sleep(3000);
                 } catch (RemoteException e) {
-                    new Thread(this::iniciaEleicao).start();
+                    if (!inEleicao) {
+                        new Thread(this::iniciaEleicao).start();
+                    }
                 }
             }
         }
@@ -135,42 +139,50 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Inicia eleição mandando mensagem de eleição pra todos nodos de ID maior que ele, se alguem responder desiste e espera mensagem de novo coordenador, se ninguem responder se declara o "MANDACHUVA avisa" geral e inicia modo coordenador
     public void iniciaEleicao() {
-        if(!inEleicao || coordenador.equals(this)) {
-            System.out.println("Iniciando eleição");
-            inEleicao = Boolean.TRUE;
-            Boolean eleito = Boolean.TRUE;
-            //Envia msg para IDs maiores (Possivelmente Thread nova tem que testar)
-            for (Nodo nodo : nodos) {
-                if (Integer.parseInt(nodo.ID) > Integer.parseInt(this.ID)) {
-                    //Pega o objeto nodo no registro RMI
-                    String remoteHostName = nodo.address;
-                    String connectLocation = "//" + remoteHostName + "/" + nodo.ID;
 
-                    NodoInterface nodoInterface = null;
-                    try {
-                        //Conecta no host e busca seu objeto remoto no Registro RMI do Servidor
-                        System.out.println("Conectando ao nodo em : " + connectLocation);
-                        nodoInterface = (NodoInterface) Naming.lookup(connectLocation);
-                        if (nodoInterface.mensagemEleicao()) {
-                            eleito = Boolean.FALSE;
-                            break;
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Nodo falhou: ");
+        if(!inEleicao || coordenador.equals(this)) {
+            inEleicao = Boolean.TRUE;
+            List<Nodo> nodosAux = nodos.stream().filter(nodo -> Integer.parseInt(nodo.ID) > Integer.parseInt(this.ID)).collect(Collectors.toList());
+            StringBuilder sb = new StringBuilder();
+            sb.append("e [ ");
+            nodosAux.forEach(n -> sb.append(n.ID).append(" "));
+            sb.append("]");
+
+            System.out.println(sb.toString());
+
+            eleito = Boolean.TRUE;
+            //Envia msg para IDs maiores (Possivelmente Thread nova tem que testar)
+            for (Nodo nodo : nodosAux) {
+                //Pega o objeto nodo no registro RMI
+                String remoteHostName = nodo.address;
+                String connectLocation = "//" + remoteHostName + "/" + nodo.ID;
+
+                NodoInterface nodoInterface = null;
+                try {
+                    //Conecta no host e busca seu objeto remoto no Registro RMI do Servidor
+                    nodoInterface = (NodoInterface) Naming.lookup(connectLocation);
+                    if (nodoInterface.mensagemEleicao()) {
+                        eleito = Boolean.FALSE;
+                        break;
                     }
+                } catch (Exception e) {
+
                 }
+                if (eleito) {
+                    coordenador = this;
+                    notificaNovoCoordenador();
+                }
+                inEleicao = Boolean.FALSE;
             }
             if (eleito) {
                 coordenador = this;
                 notificaNovoCoordenador();
             }
-            inEleicao = Boolean.FALSE;
         }
     }
 
     //Recebe mensagem de eleição, responde e inicia propria eleição
     public boolean mensagemEleicao() throws RemoteException {
-        System.out.println("Recebida mensagem de eleição");
         if (!inEleicao) {
             new Thread(this::iniciaEleicao).start();
         }
@@ -180,7 +192,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Avisa geral que é o novo "MANDACHUVA" e inicia modo coordenador
     public void notificaNovoCoordenador() {
         //Envia mensagemNovoCoordenador para todos nodos
-        System.out.println("Notificando novo coordenador");
+        System.out.println("c " + this.ID);
         nodos.forEach(nodo -> {
             if (!nodo.ID.equals(this.ID)) {
 
@@ -191,11 +203,10 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
                 NodoInterface nodoInterface = null;
                 try {
                     //Conecta no host e busca seu objeto remoto no Registro RMI do Servidor
-                    System.out.println("Conectando ao nodo em : " + connectLocation);
                     nodoInterface = (NodoInterface) Naming.lookup(connectLocation);
                     nodoInterface.mensagemNovoCoordenador(this);
                 } catch (Exception e) {
-                    System.out.println("Nodo falhou: ");
+
                 }
             }
         });
@@ -205,8 +216,9 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Recebe aviso de que tem um novo "MANDACHUVA" no pedaço e retoma modo nodo
     public void mensagemNovoCoordenador(NodoInterface nodo) throws RemoteException, InterruptedException {
         //Recebe novo cordenador e seta em uma variavel?? para enviar msgs
-        System.out.println("Recebendo novo coordenador");
+        System.out.println("c " + nodo.getID());
         coordenador = nodo;
+        inEleicao = Boolean.FALSE;
     }
 
     public String getID() {
