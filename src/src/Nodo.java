@@ -61,6 +61,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         while (nodosProntos.intValue()<nodos.size()){
 
         }
+        coordenador();
     }
 
     //Recebe "CHEGAY" dos demais nodos, retorna ok e soma numero de nodos prontos
@@ -74,8 +75,14 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Conta 10 segundos e encerra programa
-    public void coordenador() {
+    public static void coordenador() {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
+        System.exit(0);
     }
 
     //Confirma menssagem dos nodos
