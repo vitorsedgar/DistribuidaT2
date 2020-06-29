@@ -127,7 +127,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
                 Thread.sleep(3000);
             } catch (RemoteException e) {
                 flag = false;
-                iniciaEleicao();
+                new Thread(this::iniciaEleicao).start();
             }
         }
     }
@@ -166,8 +166,9 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Recebe mensagem de eleição, responde e inicia propria eleição
     public boolean mensagemEleicao() throws RemoteException {
+        System.out.println("Recebida mensagem de eleição");
         if (!inEleicao) {
-            iniciaEleicao();
+            new Thread(this::iniciaEleicao).start();
         }
         return true;
     }
@@ -175,23 +176,34 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Avisa geral que é o novo "MANDACHUVA" e inicia modo coordenador
     public void notificaNovoCoordenador() {
         //Envia mensagemNovoCoordenador para todos nodos
+        System.out.println("Notificando novo coordenador");
         nodos.forEach(nodo -> {
-            try {
-                nodo.mensagemNovoCoordenador(this);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (!nodo.ID.equals(this.ID)) {
+
+                //Pega o objeto nodo no registro RMI
+                String remoteHostName = nodo.address;
+                String connectLocation = "//" + remoteHostName + "/" + nodo.ID;
+
+                NodoInterface nodoInterface = null;
+                try {
+                    //Conecta no host e busca seu objeto remoto no Registro RMI do Servidor
+                    System.out.println("Conectando ao nodo em : " + connectLocation);
+                    nodoInterface = (NodoInterface) Naming.lookup(connectLocation);
+                    nodoInterface.mensagemNovoCoordenador(this);
+                } catch (Exception e) {
+                    System.out.println("Nodo falhou: ");
+                }
             }
         });
-        coordenador();
+        this.coordenador();
     }
 
     //Recebe aviso de que tem um novo "MANDACHUVA" no pedaço e retoma modo nodo
     public void mensagemNovoCoordenador(NodoInterface nodo) throws RemoteException, InterruptedException {
         //Recebe novo cordenador e seta em uma variavel?? para enviar msgs
+        System.out.println("Recebendo novo coordenador");
         coordenador = nodo;
-        nodo();
+        this.nodo();
     }
 
     public String getID() {
