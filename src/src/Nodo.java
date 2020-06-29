@@ -108,12 +108,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        try {
-            String connectLocation = "//" + this.address + "/" + this.ID;
-            LocateRegistry.getRegistry().unbind("rmi:" + connectLocation);
-        } catch (RemoteException | NotBoundException e) {
-            e.printStackTrace();
-        }
+        System.exit(0);
     }
 
     //Confirma menssagem dos nodos
@@ -140,34 +135,37 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Inicia eleição mandando mensagem de eleição pra todos nodos de ID maior que ele, se alguem responder desiste e espera mensagem de novo coordenador, se ninguem responder se declara o "MANDACHUVA avisa" geral e inicia modo coordenador
     public void iniciaEleicao() {
-        System.out.println("Iniciando eleição");
-        inEleicao = Boolean.TRUE;
-        Boolean eleito = Boolean.TRUE;
-        //Envia msg para IDs maiores (Possivelmente Thread nova tem que testar)
-        for (Nodo nodo : nodos) {
-            if (Integer.parseInt(nodo.ID) > Integer.parseInt(this.ID)) {
-                //Pega o objeto nodo no registro RMI
-                String remoteHostName = nodo.address;
-                String connectLocation = "//" + remoteHostName + "/" + nodo.ID;
+        if(!inEleicao || coordenador.equals(this)) {
+            System.out.println("Iniciando eleição");
+            inEleicao = Boolean.TRUE;
+            Boolean eleito = Boolean.TRUE;
+            //Envia msg para IDs maiores (Possivelmente Thread nova tem que testar)
+            for (Nodo nodo : nodos) {
+                if (Integer.parseInt(nodo.ID) > Integer.parseInt(this.ID)) {
+                    //Pega o objeto nodo no registro RMI
+                    String remoteHostName = nodo.address;
+                    String connectLocation = "//" + remoteHostName + "/" + nodo.ID;
 
-                NodoInterface nodoInterface = null;
-                try {
-                    //Conecta no host e busca seu objeto remoto no Registro RMI do Servidor
-                    System.out.println("Conectando ao nodo em : " + connectLocation);
-                    nodoInterface = (NodoInterface) Naming.lookup(connectLocation);
-                    if (nodoInterface.mensagemEleicao()) {
-                        eleito = Boolean.FALSE;
-                        break;
+                    NodoInterface nodoInterface = null;
+                    try {
+                        //Conecta no host e busca seu objeto remoto no Registro RMI do Servidor
+                        System.out.println("Conectando ao nodo em : " + connectLocation);
+                        nodoInterface = (NodoInterface) Naming.lookup(connectLocation);
+                        if (nodoInterface.mensagemEleicao()) {
+                            eleito = Boolean.FALSE;
+                            break;
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Nodo falhou: ");
                     }
-                } catch (Exception e) {
-                    System.out.println("Nodo falhou: ");
                 }
             }
+            if (eleito) {
+                coordenador = this;
+                notificaNovoCoordenador();
+            }
+            inEleicao = Boolean.FALSE;
         }
-        if (eleito) {
-            notificaNovoCoordenador();
-        }
-        inEleicao = Boolean.FALSE;
     }
 
     //Recebe mensagem de eleição, responde e inicia propria eleição
