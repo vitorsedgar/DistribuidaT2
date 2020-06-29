@@ -76,7 +76,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface{
 
     //Envia mensagem ao coordenador a cada 3 segundos, se coordenador não responder inicia eleição
     public void nodo(){
-
+        //Enviar mensagemCoordenador ao atual coordenador da rede
     }
 
     //Inicia eleição mandando mensagem de eleição pra todos nodos de ID maior que ele, se alguem responder desiste e espera mensagem de novo coordenador, se ninguem responder se declara o "MANDACHUVA avisa" geral e inicia modo coordenador
@@ -100,8 +100,9 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface{
     }
 
     //Recebe aviso de que tem um novo "MANDACHUVA" no pedaço e retoma modo nodo
-    public void mensagemNovoCoordenador(){
+    public void mensagemNovoCoordenador(NodoInterface nodo){
         //Recebe novo cordenador e seta em uma variavel?? para enviar msgs
+        coordenador = nodo;
     }
 
     public String getID() {

@@ -2,7 +2,7 @@ import java.rmi.Remote;
 
 public interface NodoInterface extends Remote {
 
-    public void mensagemNovoCoordenador();
+    public void mensagemNovoCoordenador(NodoInterface nodo);
 
     public boolean mensagemEleicao();
 
