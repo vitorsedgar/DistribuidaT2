@@ -141,7 +141,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Inicia eleição mandando mensagem de eleição pra todos nodos de ID maior que ele, se alguem responder desiste e espera mensagem de novo coordenador, se ninguem responder se declara o "MANDACHUVA avisa" geral e inicia modo coordenador
     public void iniciaEleicao() {
 
-        if(!inEleicao || coordenador.equals(this)) {
+        if(!inEleicao || !coordenador.equals(this)) {
             inEleicao = Boolean.TRUE;
             List<Nodo> nodosAux = nodos.stream().filter(nodo -> Integer.parseInt(nodo.ID) > Integer.parseInt(this.ID)).collect(Collectors.toList());
             StringBuilder sb = new StringBuilder();
