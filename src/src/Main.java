@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    //Lê arquivo de config, registra no RMI e inicializa o nodo
+    //Lê arquivo de config e inicializa o nodo
     public static void main(String args[]) throws IOException, InterruptedException {
         if (args.length < 2) {
             System.out.println("Usage: java Main <arquivo> <linha>");
@@ -45,7 +45,6 @@ public class Main {
         });
 
         try {
-            //Deve se cuidar para definir o hostlocal, senão acaba ocorrendo erro de conexão ao tentar interagir com o arquivo
             System.setProperty("java.rmi.server.hostname", nodo.address);
             LocateRegistry.createRegistry(1099);
             System.out.println("java RMI registry created.");
