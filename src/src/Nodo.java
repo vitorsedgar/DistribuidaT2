@@ -39,6 +39,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
         try {
             //Registra no RMI Registry o objeto
+            //Talvez tenha que mudar para usar ID ao invez de "Nodo" para caso no mesmo ip não se confunda
             Naming.rebind("Nodo", nodo);
             System.out.println("Nodo is ready.");
         } catch (Exception e) {
@@ -103,7 +104,19 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Inicia eleição mandando mensagem de eleição pra todos nodos de ID maior que ele, se alguem responder desiste e espera mensagem de novo coordenador, se ninguem responder se declara o "MANDACHUVA avisa" geral e inicia modo coordenador
     public void iniciaEleicao() {
         inEleicao = Boolean.TRUE;
+        Boolean eleito = Boolean.TRUE;
         //Envia msg para IDs maiores (Possivelmente Thread nova tem que testar)
+        for (Nodo nodo:nodos) {
+            if(Integer.parseInt(nodo.ID)>Integer.parseInt(this.ID)){
+                if(nodo.mensagemEleicao()){
+                    eleito = Boolean.FALSE;
+                    break;
+                };
+            }
+        }
+        if(eleito){
+            notificaNovoCoordenador();
+        }
         inEleicao = Boolean.FALSE;
     }
 
@@ -118,6 +131,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Avisa geral que é o novo "MANDACHUVA" e inicia modo coordenador
     public void notificaNovoCoordenador() {
         //Envia mensagemNovoCoordenador para todos nodos
+        nodos.forEach(nodo -> nodo.mensagemNovoCoordenador(this));
     }
 
     //Recebe aviso de que tem um novo "MANDACHUVA" no pedaço e retoma modo nodo
