@@ -28,14 +28,14 @@ public class Main {
 
         List<Nodo> nodos = new ArrayList<>();
 
-        String[] linhaNodo = br.lines().skip(Integer.parseInt(args[1])-1).findFirst().get().split(" ");
-        Nodo nodo = new Nodo(linhaNodo[0],linhaNodo[1],linhaNodo[2]);
+        String[] linhaNodo = br.lines().skip(Integer.parseInt(args[1]) - 1).findFirst().get().split(" ");
+        Nodo nodo = new Nodo(linhaNodo[0], linhaNodo[1], linhaNodo[2]);
 
         br.lines().forEach(linha -> {
             String[] linhaAux = linha.split(" ");
             if (linhaAux[0].equalsIgnoreCase(linhaNodo[0])) return;
             try {
-                nodos.add(new Nodo(linhaAux[0],linhaAux[1],linhaAux[2]));
+                nodos.add(new Nodo(linhaAux[0], linhaAux[1], linhaAux[2]));
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -50,7 +50,7 @@ public class Main {
             System.out.println("java RMI registry already exists.");
         }
 
-        nodo.inicia(nodos);
+        Nodo.inicia(nodo.ID, nodo.address, nodo.port, nodos);
 
     }
 }

@@ -4,103 +4,117 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class Nodo extends UnicastRemoteObject implements NodoInterface{
+public class Nodo extends UnicastRemoteObject implements NodoInterface {
     public String ID;
     public String port;
     public String address;
 
-    private List<Nodo> nodos;
-    private int nodosProntos;
-    private Boolean inEleicao;
+    private static volatile List<Nodo> nodos;
+    private static volatile AtomicInteger nodosProntos;
+    private static volatile Boolean inEleicao;
 
     private NodoInterface coordenador;
 
-    public Nodo(String ID, String address, String port) throws RemoteException{
+    protected Nodo(String ID, String address, String port) throws RemoteException {
         this.ID = ID;
         this.address = address;
         this.port = port;
     }
 
     //Vê se é o cara de maior ID da lista se for inicia modo primeiro coordenador se não envia confirmaNodo para o coordenador e então inicia modo nodo
-    public void inicia(List<Nodo> nodos){
-        this.nodos = nodos;
+    public static void inicia(String ID, String address, String port, List<Nodo> listaNodos) {
+        nodos = listaNodos;
         Nodo maiorID = getNodoMaiorID();
         inEleicao = Boolean.FALSE;
+        nodosProntos = new AtomicInteger(1);
+        Nodo nodo = null;
+        try {
+            nodo = new Nodo(ID, address, port);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 
         try {
             //Registra no RMI Registry o objeto
-            Naming.rebind("Nodo", this);
+            Naming.rebind("Nodo", nodo);
             System.out.println("Nodo is ready.");
         } catch (Exception e) {
             System.out.println("Nodo failed: " + e);
         }
 
-        if(Integer.parseInt(maiorID.ID) < Integer.parseInt(this.ID)){
+        if (Integer.parseInt(maiorID.ID) < Integer.parseInt(nodo.ID)) {
             primeiroCoordenador();
         }
     }
 
-    private Nodo getNodoMaiorID() {
-        List<Nodo> lista = this.nodos.stream().sorted(Comparator.comparing(Nodo::getID)).collect(Collectors.toList());
+    private static Nodo getNodoMaiorID() {
+        List<Nodo> lista = nodos.stream().sorted(Comparator.comparing(Nodo::getID)).collect(Collectors.toList());
         Collections.reverse(lista);
         return lista.get(0);
     }
 
     //Espera receber "CHEGAY" de todos os outros nodos da lista nodosProntos = nodos.size() e então inicia modo coordenador
-    public void primeiroCoordenador(){
+    public static void primeiroCoordenador() {
+        while (nodosProntos.intValue()<nodos.size()){
 
+        }
     }
 
     //Recebe "CHEGAY" dos demais nodos, retorna ok e soma numero de nodos prontos
-    public void mensagemConfirmaNodo(){
-
+    public void mensagemConfirmaNodo() {
+        nodosProntos.getAndIncrement();
     }
 
     //Envia "CHEGAY" ao coordenador e inicia modo nodo
-    public void confirmaNodo(){
+    public void confirmaNodo() {
 
     }
 
     //Conta 10 segundos e encerra programa
-    public void coordenador(){
+    public void coordenador() {
 
     }
 
     //Confirma menssagem dos nodos
-    public boolean mensagemCoordenador(){
-
+    public boolean mensagemCoordenador() {
         return true;
     }
 
     //Envia mensagem ao coordenador a cada 3 segundos, se coordenador não responder inicia eleição
-    public void nodo(){
+    public void nodo() {
         //Enviar mensagemCoordenador ao atual coordenador da rede
+        try {
+            coordenador.mensagemCoordenador();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     //Inicia eleição mandando mensagem de eleição pra todos nodos de ID maior que ele, se alguem responder desiste e espera mensagem de novo coordenador, se ninguem responder se declara o "MANDACHUVA avisa" geral e inicia modo coordenador
-    public void iniciaEleicao(){
+    public void iniciaEleicao() {
         inEleicao = Boolean.TRUE;
         //Envia msg para IDs maiores (Possivelmente Thread nova tem que testar)
         inEleicao = Boolean.FALSE;
     }
 
     //Recebe mensagem de eleição, responde e inicia propria eleição
-    public boolean mensagemEleicao(){
-        if(!inEleicao){
+    public boolean mensagemEleicao() {
+        if (!inEleicao) {
             iniciaEleicao();
         }
         return true;
     }
 
     //Avisa geral que é o novo "MANDACHUVA" e inicia modo coordenador
-    public void notificaNovoCoordenador(){
+    public void notificaNovoCoordenador() {
         //Envia mensagemNovoCoordenador para todos nodos
     }
 
     //Recebe aviso de que tem um novo "MANDACHUVA" no pedaço e retoma modo nodo
-    public void mensagemNovoCoordenador(NodoInterface nodo){
+    public void mensagemNovoCoordenador(NodoInterface nodo) {
         //Recebe novo cordenador e seta em uma variavel?? para enviar msgs
         coordenador = nodo;
     }
