@@ -17,6 +17,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     private static volatile List<Nodo> nodos;
     private static volatile AtomicInteger nodosProntos;
     private static volatile Boolean inEleicao;
+    private static volatile Boolean eleito;
 
     private static volatile NodoInterface coordenador;
 
@@ -31,6 +32,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         nodos = listaNodos;
         Nodo maiorID = getNodoMaiorID();
         inEleicao = Boolean.FALSE;
+        eleito = Boolean.FALSE;
         nodosProntos = new AtomicInteger(0);
         Nodo nodo = null;
         try {
@@ -103,17 +105,13 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Conta 10 segundos e encerra programa
     public void coordenador() {
+        inEleicao = Boolean.FALSE;
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        try {
-            String connectLocation = "//" + this.address + "/" + this.ID;
-            LocateRegistry.getRegistry().unbind("rmi:" + connectLocation);
-        } catch (RemoteException | NotBoundException e) {
-            e.printStackTrace();
-        }
+        System.exit(0);
     }
 
     //Confirma menssagem dos nodos
@@ -131,7 +129,9 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
                     coordenador.mensagemCoordenador();
                     Thread.sleep(3000);
                 } catch (RemoteException e) {
-                    new Thread(this::iniciaEleicao).start();
+                    if (!inEleicao) {
+                        new Thread(this::iniciaEleicao).start();
+                    }
                 }
             }
         }
@@ -139,6 +139,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Inicia eleição mandando mensagem de eleição pra todos nodos de ID maior que ele, se alguem responder desiste e espera mensagem de novo coordenador, se ninguem responder se declara o "MANDACHUVA avisa" geral e inicia modo coordenador
     public void iniciaEleicao() {
+        inEleicao = Boolean.TRUE;
         List<Nodo> nodosAux = nodos.stream().filter(nodo -> Integer.parseInt(nodo.ID) > Integer.parseInt(this.ID)).collect(Collectors.toList());
         StringBuilder sb = new StringBuilder();
         sb.append("e [ ");
@@ -147,8 +148,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
         System.out.println(sb.toString());
 
-        inEleicao = Boolean.TRUE;
-        Boolean eleito = Boolean.TRUE;
+        eleito = Boolean.TRUE;
         //Envia msg para IDs maiores (Possivelmente Thread nova tem que testar)
         for (Nodo nodo : nodosAux) {
             //Pega o objeto nodo no registro RMI
@@ -169,8 +169,6 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         }
         if (eleito) {
             notificaNovoCoordenador();
-        } else {
-            inEleicao = Boolean.FALSE;
         }
     }
 
@@ -203,7 +201,6 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
                 }
             }
         });
-        inEleicao = Boolean.FALSE;
         this.coordenador();
     }
 
@@ -212,6 +209,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         //Recebe novo cordenador e seta em uma variavel?? para enviar msgs
         System.out.println("c " + nodo.getID());
         coordenador = nodo;
+        inEleicao = Boolean.FALSE;
     }
 
     public String getID() {
