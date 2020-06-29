@@ -3,7 +3,7 @@ import java.rmi.RemoteException;
 
 public interface NodoInterface extends Remote {
 
-    public void mensagemNovoCoordenador(NodoInterface nodo) throws RemoteException;
+    public void mensagemNovoCoordenador(NodoInterface nodo) throws RemoteException, InterruptedException;
 
     public boolean mensagemEleicao() throws RemoteException;
 

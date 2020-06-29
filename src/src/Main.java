@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Main {
     //Lê arquivo de config, registra no RMI e inicializa o nodo
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws IOException, InterruptedException {
         if (args.length < 2) {
             System.out.println("Usage: java Main <arquivo> <linha>");
             System.exit(1);
