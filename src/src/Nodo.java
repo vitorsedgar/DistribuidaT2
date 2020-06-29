@@ -100,7 +100,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
             e.printStackTrace();
         }
 
-        nodo();
+        this.nodo();
     }
 
     //Conta 10 segundos e encerra programa
@@ -130,7 +130,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
                     Thread.sleep(3000);
                 } catch (RemoteException e) {
                     if (!inEleicao) {
-                        new Thread(this::iniciaEleicao).start();
+                        this.iniciaEleicao();
                     }
                 }
             }
@@ -139,8 +139,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Inicia eleição mandando mensagem de eleição pra todos nodos de ID maior que ele, se alguem responder desiste e espera mensagem de novo coordenador, se ninguem responder se declara o "MANDACHUVA avisa" geral e inicia modo coordenador
     public void iniciaEleicao() {
-
-        if(!inEleicao || !coordenador.equals(this)) {
+        if(!inEleicao && !coordenador.equals(this)) {
             inEleicao = Boolean.TRUE;
             List<Nodo> nodosAux = nodos.stream().filter(nodo -> Integer.parseInt(nodo.ID) > Integer.parseInt(this.ID)).collect(Collectors.toList());
             StringBuilder sb = new StringBuilder();
@@ -178,9 +177,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Recebe mensagem de eleição, responde e inicia propria eleição
     public boolean mensagemEleicao() throws RemoteException {
-        if (!inEleicao) {
-            new Thread(this::iniciaEleicao).start();
-        }
+        new Thread(this::iniciaEleicao).start();
         return true;
     }
 
