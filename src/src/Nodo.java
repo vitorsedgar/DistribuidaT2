@@ -48,7 +48,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
         if (Integer.parseInt(maiorID.ID) < Integer.parseInt(nodo.ID)) {
             nodo.primeiroCoordenador();
-        }else{
+        } else {
             //Pega o objeto do coordenador no registro RMI
             String remoteHostName = maiorID.address;
             String connectLocation = "//" + remoteHostName + "/" + maiorID.ID;
@@ -75,7 +75,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Espera receber "CHEGAY" de todos os outros nodos da lista nodosProntos = nodos.size() e então inicia modo coordenador
     public void primeiroCoordenador() {
-        while (nodosProntos.intValue()<nodos.size()){
+        while (nodosProntos.intValue() < nodos.size()) {
 
         }
         this.coordenador();
@@ -119,10 +119,14 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Envia mensagem ao coordenador a cada 3 segundos, se coordenador não responder inicia eleição
     public void nodo() {
         //Enviar mensagemCoordenador ao atual coordenador da rede
+
         try {
-            coordenador.mensagemCoordenador();
-            System.out.println("emvaindoMSG");
+            while (true) {
+                coordenador.mensagemCoordenador();
+                System.out.println("emvaindoMSG");
+            }
         } catch (RemoteException e) {
+            iniciaEleicao();
             e.printStackTrace();
         }
     }
@@ -132,15 +136,15 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         inEleicao = Boolean.TRUE;
         Boolean eleito = Boolean.TRUE;
         //Envia msg para IDs maiores (Possivelmente Thread nova tem que testar)
-        for (Nodo nodo:nodos) {
-            if(Integer.parseInt(nodo.ID)>Integer.parseInt(this.ID)){
-                if(nodo.mensagemEleicao()){
+        for (Nodo nodo : nodos) {
+            if (Integer.parseInt(nodo.ID) > Integer.parseInt(this.ID)) {
+                if (nodo.mensagemEleicao()) {
                     eleito = Boolean.FALSE;
                     break;
-                };
+                }
             }
         }
-        if(eleito){
+        if (eleito) {
             notificaNovoCoordenador();
         }
         inEleicao = Boolean.FALSE;
