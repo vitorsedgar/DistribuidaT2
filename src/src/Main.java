@@ -31,6 +31,13 @@ public class Main {
         String[] linhaNodo = br.lines().skip(Integer.parseInt(args[1]) - 1).findFirst().get().split(" ");
         Nodo nodo = new Nodo(linhaNodo[0], linhaNodo[1], linhaNodo[2]);
 
+        try {
+            br = new BufferedReader(new FileReader(file));
+        } catch (FileNotFoundException e) {
+            System.out.println("Erro ao processar aquivo de configuração");
+            e.printStackTrace();
+        }
+
         br.lines().forEach(linha -> {
             String[] linhaAux = linha.split(" ");
             if (linhaAux[0].equalsIgnoreCase(linhaNodo[0])) return;
