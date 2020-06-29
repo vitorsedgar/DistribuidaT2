@@ -49,7 +49,21 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         if (Integer.parseInt(maiorID.ID) < Integer.parseInt(nodo.ID)) {
             nodo.primeiroCoordenador();
         }else{
-            nodo.confirmaNodo(maiorID);
+            //Pega o objeto do coordenador no registro RMI
+            String remoteHostName = maiorID.address;
+            String connectLocation = "//" + remoteHostName + "/" + maiorID.ID;
+
+            coordenador = null;
+            try {
+                //Conecta no host e busca seu objeto remoto no Registro RMI do Servidor
+                System.out.println("Conectando ao coordenador em : " + connectLocation);
+                coordenador = (NodoInterface) Naming.lookup(connectLocation);
+            } catch (Exception e) {
+                System.out.println("Coordenador falhou: ");
+                e.printStackTrace();
+            }
+
+            nodo.confirmaNodo(coordenador);
         }
     }
 
@@ -69,12 +83,14 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Recebe "CHEGAY" dos demais nodos, retorna ok e soma numero de nodos prontos
     public void mensagemConfirmaNodo() {
+        System.out.println("nod confirmado");
         nodosProntos.getAndIncrement();
     }
 
     //Envia "CHEGAY" ao coordenador e inicia modo nodo
     public void confirmaNodo(NodoInterface coordenador) {
         try {
+            System.out.println("env confirmanod");
             coordenador.mensagemConfirmaNodo();
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -96,6 +112,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Confirma menssagem dos nodos
     public boolean mensagemCoordenador() {
+        System.out.println("recebendoMSG");
         return true;
     }
 
@@ -104,6 +121,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         //Enviar mensagemCoordenador ao atual coordenador da rede
         try {
             coordenador.mensagemCoordenador();
+            System.out.println("emvaindoMSG");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
