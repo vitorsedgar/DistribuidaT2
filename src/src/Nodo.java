@@ -3,24 +3,24 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 
 public class Nodo extends UnicastRemoteObject implements NodoInterface{
-    private int ID;
-    private int port;
-    private String address;
+    public String ID;
+    public String port;
+    public String address;
 
     private List<NodoInterface> nodos;
     private int nodosProntos;
 
     private NodoInterface coordenador;
 
-    public Nodo(int ID, int port, String address) throws RemoteException{
+    public Nodo(String ID, String address, String port) throws RemoteException{
         this.ID = ID;
-        this.port = port;
         this.address = address;
+        this.port = port;
     }
 
     //Vê se é o cara de maior ID da lista se for inicia modo primeiro coordenador se não envia mensagemConfirmaNodo para o coordenador e então inicia modo nodo
-    public void inicia(){
-
+    public void inicia(List<NodoInterface> nodos){
+        this.nodos = nodos;
     }
 
     //Espera receber "CHEGAY" de todos os outros nodos da lista nodosProntos = nodos.size() e então inicia modo coordenador
