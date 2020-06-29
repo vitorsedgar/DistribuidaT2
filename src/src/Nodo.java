@@ -16,7 +16,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     private static volatile AtomicInteger nodosProntos;
     private static volatile Boolean inEleicao;
 
-    private NodoInterface coordenador;
+    private static volatile NodoInterface coordenador;
 
     protected Nodo(String ID, String address, String port) throws RemoteException {
         this.ID = ID;
@@ -48,6 +48,8 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
         if (Integer.parseInt(maiorID.ID) < Integer.parseInt(nodo.ID)) {
             primeiroCoordenador();
+        }else{
+            confirmaNodo(maiorID);
         }
     }
 
@@ -71,8 +73,14 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Envia "CHEGAY" ao coordenador e inicia modo nodo
-    public void confirmaNodo() {
+    public static void confirmaNodo(NodoInterface coordenador) {
+        try {
+            coordenador.mensagemConfirmaNodo();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 
+        nodo();
     }
 
     //Conta 10 segundos e encerra programa
@@ -92,7 +100,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Envia mensagem ao coordenador a cada 3 segundos, se coordenador não responder inicia eleição
-    public void nodo() {
+    public static void nodo() {
         //Enviar mensagemCoordenador ao atual coordenador da rede
         try {
             coordenador.mensagemCoordenador();
