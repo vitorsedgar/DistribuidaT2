@@ -40,16 +40,16 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         try {
             //Registra no RMI Registry o objeto
             //Talvez tenha que mudar para usar ID ao invez de "Nodo" para caso no mesmo ip não se confunda
-            Naming.rebind("Nodo", nodo);
+            Naming.rebind(nodo.ID, nodo);
             System.out.println("Nodo is ready.");
         } catch (Exception e) {
             System.out.println("Nodo failed: " + e);
         }
 
         if (Integer.parseInt(maiorID.ID) < Integer.parseInt(nodo.ID)) {
-            primeiroCoordenador();
+            nodo.primeiroCoordenador();
         }else{
-            confirmaNodo(maiorID);
+            nodo.confirmaNodo(maiorID);
         }
     }
 
@@ -60,11 +60,11 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Espera receber "CHEGAY" de todos os outros nodos da lista nodosProntos = nodos.size() e então inicia modo coordenador
-    public static void primeiroCoordenador() {
+    public void primeiroCoordenador() {
         while (nodosProntos.intValue()<nodos.size()){
 
         }
-        coordenador();
+        this.coordenador();
     }
 
     //Recebe "CHEGAY" dos demais nodos, retorna ok e soma numero de nodos prontos
@@ -73,7 +73,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Envia "CHEGAY" ao coordenador e inicia modo nodo
-    public static void confirmaNodo(NodoInterface coordenador) {
+    public void confirmaNodo(NodoInterface coordenador) {
         try {
             coordenador.mensagemConfirmaNodo();
         } catch (RemoteException e) {
@@ -84,7 +84,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Conta 10 segundos e encerra programa
-    public static void coordenador() {
+    public void coordenador() {
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
@@ -100,7 +100,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     }
 
     //Envia mensagem ao coordenador a cada 3 segundos, se coordenador não responder inicia eleição
-    public static void nodo() {
+    public void nodo() {
         //Enviar mensagemCoordenador ao atual coordenador da rede
         try {
             coordenador.mensagemCoordenador();
