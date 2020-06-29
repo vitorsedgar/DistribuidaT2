@@ -1,13 +1,17 @@
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Nodo extends UnicastRemoteObject implements NodoInterface{
     public String ID;
     public String port;
     public String address;
 
-    private List<NodoInterface> nodos;
+    private List<Nodo> nodos;
     private int nodosProntos;
 
     private NodoInterface coordenador;
@@ -18,9 +22,28 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface{
         this.port = port;
     }
 
-    //Vê se é o cara de maior ID da lista se for inicia modo primeiro coordenador se não envia mensagemConfirmaNodo para o coordenador e então inicia modo nodo
-    public void inicia(List<NodoInterface> nodos){
+    //Vê se é o cara de maior ID da lista se for inicia modo primeiro coordenador se não envia confirmaNodo para o coordenador e então inicia modo nodo
+    public void inicia(List<Nodo> nodos){
         this.nodos = nodos;
+        Nodo maiorID = getNodoMaiorID();
+
+        try {
+            //Registra no RMI Registry o objeto
+            Naming.rebind("Nodo", this);
+            System.out.println("Nodo is ready.");
+        } catch (Exception e) {
+            System.out.println("Nodo failed: " + e);
+        }
+
+        if(Integer.parseInt(maiorID.ID) < Integer.parseInt(this.ID)){
+            primeiroCoordenador();
+        }
+    }
+
+    private Nodo getNodoMaiorID() {
+        List<Nodo> lista = this.nodos.stream().sorted(Comparator.comparing(Nodo::getID)).collect(Collectors.toList());
+        Collections.reverse(lista);
+        return lista.get(0);
     }
 
     //Espera receber "CHEGAY" de todos os outros nodos da lista nodosProntos = nodos.size() e então inicia modo coordenador
@@ -75,4 +98,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface{
 
     }
 
+    public String getID() {
+        return ID;
+    }
 }

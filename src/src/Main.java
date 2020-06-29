@@ -26,7 +26,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        List<NodoInterface> nodos = new ArrayList<>();
+        List<Nodo> nodos = new ArrayList<>();
 
         String[] linhaNodo = br.lines().skip(Integer.parseInt(args[1])-1).findFirst().get().split(" ");
         Nodo nodo = new Nodo(linhaNodo[0],linhaNodo[1],linhaNodo[2]);
