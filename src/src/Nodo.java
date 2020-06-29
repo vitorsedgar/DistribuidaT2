@@ -124,6 +124,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         //Enviar mensagemCoordenador ao atual coordenador da rede
         while (!coordenador.equals(this)) {
             while (!inEleicao) {
+                if(coordenador.equals(this)) break;
                 try {
                     System.out.println("t " + coordenador.getID());
                     coordenador.mensagemCoordenador();
