@@ -119,15 +119,15 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Envia mensagem ao coordenador a cada 3 segundos, se coordenador não responder inicia eleição
     public void nodo() throws InterruptedException, RemoteException {
         //Enviar mensagemCoordenador ao atual coordenador da rede
-        boolean flag = true;
-        while (flag) {
-            try {
-                coordenador.mensagemCoordenador();
-                System.out.println("emvaindoMSG");
-                Thread.sleep(3000);
-            } catch (RemoteException e) {
-                flag = false;
-                new Thread(this::iniciaEleicao).start();
+        while (true) {
+            while (!inEleicao) {
+                try {
+                    coordenador.mensagemCoordenador();
+                    System.out.println("emvaindoMSG");
+                    Thread.sleep(3000);
+                } catch (RemoteException e) {
+                    new Thread(this::iniciaEleicao).start();
+                }
             }
         }
     }
@@ -203,7 +203,6 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         //Recebe novo cordenador e seta em uma variavel?? para enviar msgs
         System.out.println("Recebendo novo coordenador");
         coordenador = nodo;
-        this.nodo();
     }
 
     public String getID() {
