@@ -162,12 +162,14 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     public void notificaNovoCoordenador() {
         //Envia mensagemNovoCoordenador para todos nodos
         nodos.forEach(nodo -> nodo.mensagemNovoCoordenador(this));
+        coordenador();
     }
 
     //Recebe aviso de que tem um novo "MANDACHUVA" no pedaço e retoma modo nodo
     public void mensagemNovoCoordenador(NodoInterface nodo) {
         //Recebe novo cordenador e seta em uma variavel?? para enviar msgs
         coordenador = nodo;
+        nodo();
     }
 
     public String getID() {
