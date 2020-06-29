@@ -105,7 +105,6 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
 
     //Conta 10 segundos e encerra programa
     public void coordenador() {
-        inEleicao = Boolean.FALSE;
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
@@ -124,7 +123,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         //Enviar mensagemCoordenador ao atual coordenador da rede
         while (!coordenador.equals(this)) {
             while (!inEleicao) {
-                if(coordenador.equals(this)) break;
+                if (coordenador.equals(this)) break;
                 try {
                     System.out.println("t " + coordenador.getID());
                     coordenador.mensagemCoordenador();
@@ -168,11 +167,6 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
                 } catch (Exception e) {
 
                 }
-                if (eleito) {
-                    coordenador = this;
-                    notificaNovoCoordenador();
-                }
-                inEleicao = Boolean.FALSE;
             }
             if (eleito) {
                 coordenador = this;
@@ -214,6 +208,7 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
     //Recebe aviso de que tem um novo "MANDACHUVA" no pedaço e retoma modo nodo
     public void mensagemNovoCoordenador(NodoInterface nodo) throws RemoteException, InterruptedException {
         //Recebe novo cordenador e seta em uma variavel?? para enviar msgs
+        inEleicao = Boolean.TRUE;
         System.out.println("c " + nodo.getID());
         coordenador = nodo;
         inEleicao = Boolean.FALSE;
