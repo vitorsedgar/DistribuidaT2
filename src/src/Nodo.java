@@ -1,5 +1,7 @@
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Collections;
 import java.util.Comparator;
@@ -106,8 +108,12 @@ public class Nodo extends UnicastRemoteObject implements NodoInterface {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        System.exit(0);
+        try {
+            String connectLocation = "//" + this.address + "/" + this.ID;
+            LocateRegistry.getRegistry().unbind("rmi:" + connectLocation);
+        } catch (RemoteException | NotBoundException e) {
+            e.printStackTrace();
+        }
     }
 
     //Confirma menssagem dos nodos
